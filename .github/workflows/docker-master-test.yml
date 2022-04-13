@@ -73,7 +73,7 @@ jobs:
         with:
           key: ${{ secrets.RELATIVE_CI_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          webpackStatsFile: ./front/webpack-stats.json
+          webpackStatsFile: ./front/stats.json
       - name: ↗️ Upload build artifact
         uses: actions/upload-artifact@v2
         with:
