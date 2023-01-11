@@ -79,6 +79,11 @@ jobs:
         working-directory: ./server
         run: |
           npm run coverage
+      - uses: actions/upload-artifact@v2  # upload test results
+        if: success() || failure()        # run this step even if previous step failed
+        with:
+          name: test-results
+          path: server/servertest.json.xml
       - name: 🔐 Dependencies security audit
         working-directory: ./server
         run: npm audit --production --audit-level=critical || true
