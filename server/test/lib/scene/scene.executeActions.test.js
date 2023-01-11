@@ -1,6 +1,5 @@
 const { assert, fake } = require('sinon');
 const chaiAssert = require('chai').assert;
-const { expect } = require('chai');
 const EventEmitter = require('events');
 const cloneDeep = require('lodash.clonedeep');
 const { ACTIONS } = require('../../../utils/constants');
@@ -254,39 +253,7 @@ describe('scene.executeActions', () => {
       1,
     );
   });
-  it('should execute action device.getValue', async () => {
-    const stateManager = new StateManager(event);
-    stateManager.setState('deviceFeature', 'my-device-feature', {
-      category: 'light',
-      type: 'binary',
-      last_value: 15,
-    });
-    const device = {
-      setValue: fake.resolves(null),
-    };
-    const scope = {};
-    await executeActions(
-      { stateManager, event, device },
-      [
-        [
-          {
-            type: ACTIONS.DEVICE.GET_VALUE,
-            device_feature: 'my-device-feature',
-          },
-        ],
-      ],
-      scope,
-    );
-    expect(scope).to.deep.equal({
-      0: {
-        0: {
-          category: 'light',
-          type: 'binary',
-          last_value: 15,
-        },
-      },
-    });
-  });
+
   it('should execute action user.setSeenAtHome', async () => {
     const stateManager = new StateManager(event);
     const house = {
@@ -383,98 +350,7 @@ describe('scene.executeActions', () => {
     );
     assert.calledWith(house.userLeft, 'my-house', 'john');
   });
-  it('should execute action http.request', async () => {
-    const stateManager = new StateManager(event);
-    const http = {
-      request: fake.resolves({ success: true }),
-    };
-    const scope = {};
-    await executeActions(
-      { stateManager, event, http },
-      [
-        [
-          {
-            type: ACTIONS.HTTP.REQUEST,
-            method: 'post',
-            url: 'http://test.test',
-            body: '{"toto":"toto"}',
-            headers: [
-              {
-                key: 'authorization',
-                value: 'token',
-              },
-            ],
-          },
-        ],
-      ],
-      scope,
-    );
-    assert.calledWith(http.request, 'post', 'http://test.test', { toto: 'toto' }, { authorization: 'token' });
-  });
-  it('should execute action http.request with empty body', async () => {
-    const stateManager = new StateManager(event);
-    const http = {
-      request: fake.resolves({ success: true }),
-    };
-    const scope = {};
-    await executeActions(
-      { stateManager, event, http },
-      [
-        [
-          {
-            type: ACTIONS.HTTP.REQUEST,
-            method: 'post',
-            url: 'http://test.test',
-            headers: [
-              {
-                key: 'authorization',
-                value: 'token',
-              },
-            ],
-          },
-        ],
-      ],
-      scope,
-    );
-    assert.calledWith(http.request, 'post', 'http://test.test', undefined, { authorization: 'token' });
-  });
-  it('should abort scene, condition is not verified', async () => {
-    const stateManager = new StateManager(event);
-    stateManager.setState('deviceFeature', 'my-device-feature', {
-      category: 'light',
-      type: 'binary',
-      last_value: 15,
-    });
-    const device = {
-      setValue: fake.resolves(null),
-    };
-    const scope = {};
-    const promise = executeActions(
-      { stateManager, event, device },
-      [
-        [
-          {
-            type: ACTIONS.DEVICE.GET_VALUE,
-            device_feature: 'my-device-feature',
-          },
-        ],
-        [
-          {
-            type: ACTIONS.CONDITION.ONLY_CONTINUE_IF,
-            conditions: [
-              {
-                variable: '0.0.last_value',
-                operator: '=',
-                value: 20,
-              },
-            ],
-          },
-        ],
-      ],
-      scope,
-    );
-    return chaiAssert.isRejected(promise, AbortScene);
-  });
+
   it('should abort scene, house empty is not verified', async () => {
     const stateManager = new StateManager(event);
     const house = {
@@ -552,74 +428,6 @@ describe('scene.executeActions', () => {
       ],
       scope,
     );
-  });
-  it('should finish scene, condition is verified', async () => {
-    const stateManager = new StateManager(event);
-    stateManager.setState('deviceFeature', 'my-device-feature', {
-      category: 'light',
-      type: 'binary',
-      last_value: 15,
-    });
-    const device = {
-      setValue: fake.resolves(null),
-    };
-    const scope = {};
-    await executeActions(
-      { stateManager, event, device },
-      [
-        [
-          {
-            type: ACTIONS.DEVICE.GET_VALUE,
-            device_feature: 'my-device-feature',
-          },
-        ],
-        [
-          {
-            type: ACTIONS.CONDITION.ONLY_CONTINUE_IF,
-            conditions: [
-              {
-                variable: '0.0.last_value',
-                operator: '=',
-                value: 15,
-              },
-            ],
-          },
-        ],
-      ],
-      scope,
-    );
-  });
-  it('should send message with value injected', async () => {
-    const stateManager = new StateManager(event);
-    stateManager.setState('deviceFeature', 'my-device-feature', {
-      category: 'light',
-      type: 'binary',
-      last_value: 15,
-    });
-    const message = {
-      sendToUser: fake.resolves(null),
-    };
-    const scope = {};
-    await executeActions(
-      { stateManager, event, message },
-      [
-        [
-          {
-            type: ACTIONS.DEVICE.GET_VALUE,
-            device_feature: 'my-device-feature',
-          },
-        ],
-        [
-          {
-            type: ACTIONS.MESSAGE.SEND,
-            user: 'pepper',
-            text: 'Temperature in the living room is {{0.0.last_value}} °C.',
-          },
-        ],
-      ],
-      scope,
-    );
-    assert.calledWith(message.sendToUser, 'pepper', 'Temperature in the living room is 15 °C.');
   });
 
   it('should execute action scene.start', async () => {

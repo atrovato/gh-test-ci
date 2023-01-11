@@ -38,6 +38,7 @@ describe('scene.action.isEventRunning', () => {
     await calendar.createEvent('test-calendar', {
       id: 'a2b57b0a-7148-4961-8540-e493104bfd7c',
       name: 'my test event',
+      description: 'my event description',
       location: 'school',
       start: startDate,
       end: endDate,
@@ -70,6 +71,7 @@ describe('scene.action.isEventRunning', () => {
         '0': {
           calendarEvent: {
             name: 'my test event',
+            description: 'my event description',
             location: 'school',
             start: dayjs(startDate)
               .tz('Europe/Paris')
@@ -84,6 +86,80 @@ describe('scene.action.isEventRunning', () => {
       },
     });
   });
+  it('should execute condition is-event-running 3 times, and verify scope', async () => {
+    const stateManager = new StateManager(event);
+    const message = {
+      sendToUser: fake.resolves(null),
+    };
+    const scope = {};
+    await calendar.createEvent('test-calendar', {
+      id: 'a2b57b0a-7148-4961-8540-e493104bfd7c',
+      name: 'my test event',
+      description: 'my event description',
+      location: 'school',
+      start: startDate,
+      end: endDate,
+    });
+    await executeActions(
+      { stateManager, event, message, calendar, timezone: 'Europe/Paris' },
+      [
+        [
+          {
+            type: ACTIONS.CALENDAR.IS_EVENT_RUNNING,
+            calendars: ['test-calendar'],
+            calendar_event_name_comparator: 'contains',
+            calendar_event_name: 'test',
+            stop_scene_if_event_found: false,
+          },
+          {
+            type: ACTIONS.CALENDAR.IS_EVENT_RUNNING,
+            calendars: ['test-calendar'],
+            calendar_event_name_comparator: 'contains',
+            calendar_event_name: 'test',
+            stop_scene_if_event_found: false,
+          },
+        ],
+        [
+          {
+            type: ACTIONS.CALENDAR.IS_EVENT_RUNNING,
+            calendars: ['test-calendar'],
+            calendar_event_name_comparator: 'contains',
+            calendar_event_name: 'test',
+            stop_scene_if_event_found: false,
+          },
+        ],
+      ],
+      scope,
+    );
+    const calendarEvent = {
+      name: 'my test event',
+      location: 'school',
+      description: 'my event description',
+      start: dayjs(startDate)
+        .tz('Europe/Paris')
+        .locale('en')
+        .format('LLL'),
+      end: dayjs(endDate)
+        .tz('Europe/Paris')
+        .locale('en')
+        .format('LLL'),
+    };
+    expect(scope).to.deep.equal({
+      '0': {
+        '0': {
+          calendarEvent,
+        },
+        '1': {
+          calendarEvent,
+        },
+      },
+      '1': {
+        '0': {
+          calendarEvent,
+        },
+      },
+    });
+  });
   it('should execute condition is-event-running, and not send message because scene should stop', async () => {
     const stateManager = new StateManager(event);
     const message = {
@@ -93,6 +169,7 @@ describe('scene.action.isEventRunning', () => {
     await calendar.createEvent('test-calendar', {
       id: 'a2b57b0a-7148-4961-8540-e493104bfd7c',
       name: 'my test event',
+      description: 'my event description',
       start: startDate,
       end: endDate,
     });
@@ -130,6 +207,7 @@ describe('scene.action.isEventRunning', () => {
     await calendar.createEvent('test-calendar', {
       id: 'a2b57b0a-7148-4961-8540-e493104bfd7c',
       name: 'my test event',
+      description: 'my event description',
       start: startDate,
       end: endDate,
     });

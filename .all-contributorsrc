@@ -191,6 +191,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "siddiquiehtesham",
+      "name": "Ehtesham Siddiqui",
+      "avatar_url": "https://avatars.githubusercontent.com/u/38346914?v=4",
+      "profile": "https://ehtesham.dev",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "rpochet",
+      "name": "Pochet Romuald",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5940493?v=4",
+      "profile": "https://github.com/rpochet",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "magarcia",
+      "name": "Martin Garcia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/651610?v=4",
+      "profile": "http://magarcia.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

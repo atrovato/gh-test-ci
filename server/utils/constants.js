@@ -8,7 +8,14 @@ const BUTTON_STATUS = {
   DOUBLE_CLICK: 2,
   LONG_CLICK_PRESS: 3,
   LONG_CLICK_RELEASE: 4,
-  LONG_CLICK: 5,
+  HOLD_CLICK: 5,
+  LONG_CLICK: 6,
+};
+
+const COVER_STATE = {
+  STOP: 0,
+  OPEN: 1,
+  CLOSE: -1,
 };
 
 const USER_ROLE = {
@@ -47,6 +54,7 @@ const SYSTEM_VARIABLE_NAMES = {
   GLADYS_GATEWAY_USERS_KEYS: 'GLADYS_GATEWAY_USERS_KEYS',
   GLADYS_GATEWAY_GOOGLE_HOME_USER_IS_CONNECTED_WITH_GATEWAY:
     'GLADYS_GATEWAY_GOOGLE_HOME_USER_IS_CONNECTED_WITH_GATEWAY',
+  GLADYS_GATEWAY_ALEXA_USER_IS_CONNECTED_WITH_GATEWAY: 'GLADYS_GATEWAY_ALEXA_USER_IS_CONNECTED_WITH_GATEWAY',
   TIMEZONE: 'TIMEZONE',
 };
 
@@ -65,6 +73,7 @@ const EVENTS = {
     NEW_STATE: 'device.new-state',
     PURGE_STATES: 'device.purge-states',
     CALCULATE_HOURLY_AGGREGATE: 'device.calculate-hourly-aggregate',
+    PURGE_STATES_SINGLE_FEATURE: 'device.purge-states-single-feature',
   },
   GATEWAY: {
     CREATE_BACKUP: 'gateway.create-backup',
@@ -149,6 +158,7 @@ const EVENTS = {
     DOWNLOAD_UPGRADE: 'system.download-upgrade',
     CHECK_UPGRADE: 'system.check-upgrade',
     TIMEZONE_CHANGED: 'system.timezone-changed',
+    VACUUM: 'system.vacuum',
   },
   WEBSOCKET: {
     SEND: 'websocket.send',
@@ -272,6 +282,9 @@ const ACTIONS = {
   HTTP: {
     REQUEST: 'http.request',
   },
+  ECOWATT: {
+    CONDITION: 'ecowatt.condition',
+  },
 };
 
 const INTENTS = {
@@ -323,7 +336,20 @@ const DEVICE_FEATURE_CATEGORIES = {
   SIGNAL: 'signal',
   DEVICE_TEMPERATURE_SENSOR: 'device-temperature-sensor',
   TELEVISION: 'television',
+  ENERGY_SENSOR: 'energy-sensor',
+  VOLUME_SENSOR: 'volume-sensor',
+  CURRENCY: 'currency',
+  SPEED_SENSOR: 'speed-sensor',
+  PRECIPITATION_SENSOR: 'precipitation-sensor',
+  UV_SENSOR: 'uv-sensor',
+  DURATION: 'duration',
+  VOC_SENSOR: 'voc-sensor',
+  SHUTTER: 'shutter',
+  CURTAIN: 'curtain',
+  DATA: 'data',
+  DATARATE: 'datarate',
   UNKNOWN: 'unknown',
+  THERMOSTAT: 'thermostat',
 };
 
 const DEVICE_FEATURE_TYPES = {
@@ -414,27 +440,145 @@ const DEVICE_FEATURE_TYPES = {
     FORWARD: 'forward',
     RECORD: 'record',
   },
+  ENERGY_SENSOR: {
+    BINARY: 'binary',
+    POWER: 'power',
+    ENERGY: 'energy',
+    VOLTAGE: 'voltage',
+    CURRENT: 'current',
+    INDEX: 'index',
+  },
+  SPEED_SENSOR: {
+    DECIMAL: 'decimal',
+  },
+  UV_SENSOR: {
+    INTEGER: 'integer',
+  },
+  CURRENCY: {
+    DECIMAL: 'decimal',
+  },
+  PRECIPITATION_SENSOR: {
+    DECIMAL: 'decimal',
+  },
+  VOLUME_SENSOR: {
+    DECIMAL: 'decimal',
+    INTEGER: 'integer',
+  },
+  DURATION: {
+    DECIMAL: 'decimal',
+    INTEGER: 'integer',
+  },
+  VOC_SENSOR: {
+    DECIMAL: 'decimal',
+  },
+  SHUTTER: {
+    STATE: 'state',
+    POSITION: 'position',
+  },
+  CURTAIN: {
+    STATE: 'state',
+    POSITION: 'position',
+  },
+  DATA: {
+    SIZE: 'size',
+  },
+  DATARATE: {
+    RATE: 'rate',
+  },
   UNKNOWN: {
     UNKNOWN: 'unknown',
+  },
+  THERMOSTAT: {
+    TARGET_TEMPERATURE: 'target-temperature',
   },
 };
 
 const DEVICE_FEATURE_UNITS = {
+  // Temperature units
   CELSIUS: 'celsius',
   FAHRENHEIT: 'fahrenheit',
+  KELVIN: 'kelvin',
+  // Percentage units
   PERCENT: 'percent',
-  HECTO_PASCAL: 'hPa',
+  // Pressure units
   PASCAL: 'pascal',
+  HECTO_PASCAL: 'hPa',
+  BAR: 'bar',
+  PSI: 'psi',
+  // Light units
   LUX: 'lux',
+  // Concentration units
+  PPM: 'ppm',
+  PPB: 'ppb',
+  // Power units
   WATT: 'watt',
   KILOWATT: 'kilowatt',
+  WATT_HOUR: 'watt-hour',
   KILOWATT_HOUR: 'kilowatt-hour',
+  MEGAWATT_HOUR: 'megawatt-hour',
   AMPERE: 'ampere',
+  MILLI_AMPERE: 'milliampere',
   MILLI_VOLT: 'millivolt',
   VOLT: 'volt',
-  PPM: 'ppm',
+  KILOVOLT_AMPERE: 'kilovolt-ampere',
+  VOLT_AMPERE: 'volt-ampere',
+  VOLT_AMPERE_REACTIVE: 'volt-ampere-reactive',
+  // Length units
   MM: 'mm',
   CM: 'cm',
+  M: 'm',
+  KM: 'km',
+  // Degree units
+  DEGREE: 'degree',
+  // Volume units
+  LITER: 'liter',
+  MILLILITER: 'milliliter',
+  CUBIC_METER: 'cubicmeter',
+  // Currency units
+  EURO: 'euro',
+  DOLLAR: 'dollar',
+  BITCOIN: 'bitcoin',
+  LITECOIN: 'litecoin',
+  DOGECOIN: 'dogecoin',
+  ETHEREUM: 'ethereum',
+  POUND_STERLING: 'pound-sterling',
+  // Speed units
+  METER_PER_SECOND: 'meter-per-second',
+  KILOMETER_PER_HOUR: 'kilometer-per-hour',
+  // Precipitation units
+  MILLIMETER_PER_HOUR: 'millimeter-per-hour',
+  MILLIMETER_PER_DAY: 'millimeter-per-day',
+  // UV units
+  UV_INDEX: 'uv-index',
+  // Duration units
+  MICROSECONDS: 'microseconds',
+  MILLISECONDS: 'milliseconds',
+  SECONDS: 'seconds',
+  MINUTES: 'minutes',
+  HOURS: 'hours',
+  DAYS: 'days',
+  WEEKS: 'weeks',
+  MONTHS: 'months',
+  YEARS: 'years',
+  // Data units
+  BIT: 'bit',
+  KILOBIT: 'kilobit',
+  MEGABIT: 'megabit',
+  GIGABIT: 'gigabit',
+  BYTE: 'byte',
+  KILOBYTE: 'kilobyte',
+  MEGABYTE: 'megabyte',
+  GIGABYTE: 'gigabyte',
+  TERABYTE: 'terabyte',
+  // Data rate units
+  BITS_PER_SECOND: 'bits-per-second',
+  KILOBITS_PER_SECOND: 'kilobits-per-second',
+  MEGABITS_PER_SECOND: 'megabits-per-second',
+  GIGABITS_PER_SECOND: 'gigabits-per-second',
+  BYTES_PER_SECOND: 'bytes-per-second',
+  KILOBYTES_PER_SECOND: 'kilobytes-per-second',
+  MEGABYTES_PER_SECOND: 'megabytes-per-second',
+  GIGABYTES_PER_SECOND: 'gigabytes-per-second',
 };
 
 const WEATHER_UNITS = {
@@ -453,15 +597,100 @@ const DEVICE_FEATURE_UNITS_BY_CATEGORY = {
   [DEVICE_FEATURE_CATEGORIES.BATTERY]: [DEVICE_FEATURE_UNITS.PERCENT],
   [DEVICE_FEATURE_CATEGORIES.CO_SENSOR]: [DEVICE_FEATURE_UNITS.PPM],
   [DEVICE_FEATURE_CATEGORIES.CO2_SENSOR]: [DEVICE_FEATURE_UNITS.PPM],
-  [DEVICE_FEATURE_CATEGORIES.DISTANCE_SENSOR]: [DEVICE_FEATURE_UNITS.MM, DEVICE_FEATURE_UNITS.CM],
+  [DEVICE_FEATURE_CATEGORIES.DISTANCE_SENSOR]: [
+    DEVICE_FEATURE_UNITS.MM,
+    DEVICE_FEATURE_UNITS.CM,
+    DEVICE_FEATURE_UNITS.M,
+    DEVICE_FEATURE_UNITS.KM,
+  ],
   [DEVICE_FEATURE_CATEGORIES.HUMIDITY_SENSOR]: [DEVICE_FEATURE_UNITS.PERCENT],
   [DEVICE_FEATURE_CATEGORIES.LIGHT_SENSOR]: [DEVICE_FEATURE_UNITS.LUX],
-  [DEVICE_FEATURE_CATEGORIES.PRESSURE_SENSOR]: [DEVICE_FEATURE_UNITS.PASCAL, DEVICE_FEATURE_UNITS.HECTO_PASCAL],
-  [DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR]: [DEVICE_FEATURE_UNITS.CELSIUS, DEVICE_FEATURE_UNITS.FAHRENHEIT],
+  [DEVICE_FEATURE_CATEGORIES.PRESSURE_SENSOR]: [
+    DEVICE_FEATURE_UNITS.PASCAL,
+    DEVICE_FEATURE_UNITS.HECTO_PASCAL,
+    DEVICE_FEATURE_UNITS.BAR,
+    DEVICE_FEATURE_UNITS.PSI,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR]: [
+    DEVICE_FEATURE_UNITS.CELSIUS,
+    DEVICE_FEATURE_UNITS.FAHRENHEIT,
+    DEVICE_FEATURE_UNITS.KELVIN,
+  ],
   [DEVICE_FEATURE_CATEGORIES.DEVICE_TEMPERATURE_SENSOR]: [
     DEVICE_FEATURE_UNITS.CELSIUS,
     DEVICE_FEATURE_UNITS.FAHRENHEIT,
   ],
+  [DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR]: [
+    DEVICE_FEATURE_UNITS.MILLI_AMPERE,
+    DEVICE_FEATURE_UNITS.AMPERE,
+    DEVICE_FEATURE_UNITS.MILLI_VOLT,
+    DEVICE_FEATURE_UNITS.VOLT,
+    DEVICE_FEATURE_UNITS.WATT,
+    DEVICE_FEATURE_UNITS.KILOWATT,
+    DEVICE_FEATURE_UNITS.WATT_HOUR,
+    DEVICE_FEATURE_UNITS.KILOWATT_HOUR,
+    DEVICE_FEATURE_UNITS.MEGAWATT_HOUR,
+    DEVICE_FEATURE_UNITS.KILOVOLT_AMPERE,
+    DEVICE_FEATURE_UNITS.VOLT_AMPERE,
+    DEVICE_FEATURE_UNITS.VOLT_AMPERE_REACTIVE,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.VOLUME_SENSOR]: [
+    DEVICE_FEATURE_UNITS.LITER,
+    DEVICE_FEATURE_UNITS.MILLILITER,
+    DEVICE_FEATURE_UNITS.CUBIC_METER,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.CURRENCY]: [
+    DEVICE_FEATURE_UNITS.EURO,
+    DEVICE_FEATURE_UNITS.DOLLAR,
+    DEVICE_FEATURE_UNITS.BITCOIN,
+    DEVICE_FEATURE_UNITS.LITECOIN,
+    DEVICE_FEATURE_UNITS.ETHEREUM,
+    DEVICE_FEATURE_UNITS.DOGECOIN,
+    DEVICE_FEATURE_UNITS.POUND_STERLING,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.SPEED_SENSOR]: [
+    DEVICE_FEATURE_UNITS.METER_PER_SECOND,
+    DEVICE_FEATURE_UNITS.KILOMETER_PER_HOUR,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.PRECIPITATION_SENSOR]: [
+    DEVICE_FEATURE_UNITS.MILLIMETER_PER_HOUR,
+    DEVICE_FEATURE_UNITS.MILLIMETER_PER_DAY,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.UV_SENSOR]: [DEVICE_FEATURE_UNITS.UV_INDEX],
+  [DEVICE_FEATURE_CATEGORIES.DURATION]: [
+    DEVICE_FEATURE_UNITS.MICROSECONDS,
+    DEVICE_FEATURE_UNITS.MILLISECONDS,
+    DEVICE_FEATURE_UNITS.SECONDS,
+    DEVICE_FEATURE_UNITS.MINUTES,
+    DEVICE_FEATURE_UNITS.HOURS,
+    DEVICE_FEATURE_UNITS.DAYS,
+    DEVICE_FEATURE_UNITS.WEEKS,
+    DEVICE_FEATURE_UNITS.MONTHS,
+    DEVICE_FEATURE_UNITS.YEARS,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.VOC_SENSOR]: [DEVICE_FEATURE_UNITS.PPB],
+  [DEVICE_FEATURE_CATEGORIES.DATA]: [
+    DEVICE_FEATURE_UNITS.BIT,
+    DEVICE_FEATURE_UNITS.KILOBIT,
+    DEVICE_FEATURE_UNITS.MEGABIT,
+    DEVICE_FEATURE_UNITS.GIGABIT,
+    DEVICE_FEATURE_UNITS.BYTE,
+    DEVICE_FEATURE_UNITS.KILOBYTE,
+    DEVICE_FEATURE_UNITS.MEGABYTE,
+    DEVICE_FEATURE_UNITS.GIGABYTE,
+    DEVICE_FEATURE_UNITS.TERABYTE,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.DATARATE]: [
+    DEVICE_FEATURE_UNITS.BITS_PER_SECOND,
+    DEVICE_FEATURE_UNITS.KILOBITS_PER_SECOND,
+    DEVICE_FEATURE_UNITS.MEGABITS_PER_SECOND,
+    DEVICE_FEATURE_UNITS.GIGABITS_PER_SECOND,
+    DEVICE_FEATURE_UNITS.BYTES_PER_SECOND,
+    DEVICE_FEATURE_UNITS.KILOBYTES_PER_SECOND,
+    DEVICE_FEATURE_UNITS.MEGABYTES_PER_SECOND,
+    DEVICE_FEATURE_UNITS.GIGABYTES_PER_SECOND,
+  ],
+  [DEVICE_FEATURE_CATEGORIES.THERMOSTAT]: [DEVICE_FEATURE_UNITS.CELSIUS, DEVICE_FEATURE_UNITS.FAHRENHEIT],
 };
 
 const ACTIONS_STATUS = {
@@ -518,14 +747,6 @@ const WEBSOCKET_MESSAGE_TYPES = {
     DOWNLOAD_FINISHED: 'upgrade.download-finished',
     DOWNLOAD_FAILED: 'upgrade.download-failed',
   },
-  ZWAVE: {
-    DRIVER_READY: 'zwave.driver-ready',
-    DRIVER_FAILED: 'zwave.driver-failed',
-    NODE_READY: 'zwave.node-ready',
-    SCAN_COMPLETE: 'zwave.scan-complete',
-    NODE_ADDED: 'zwave.node-added',
-    NODE_REMOVED: 'zwave.node-removed',
-  },
   MQTT: {
     CONNECTED: 'mqtt.connected',
     ERROR: 'mqtt.error',
@@ -553,6 +774,10 @@ const WEBSOCKET_MESSAGE_TYPES = {
     NEW_DEVICE: 'ewelink.new-device',
     ERROR: 'ewelink.error',
   },
+  BROADLINK: {
+    LEARN_MODE: 'broadlink.learn',
+    SEND_MODE: 'broadlink.send',
+  },
 };
 
 const DASHBOARD_TYPE = {
@@ -567,6 +792,7 @@ const DASHBOARD_BOX_TYPE = {
   CAMERA: 'camera',
   DEVICES_IN_ROOM: 'devices-in-room',
   CHART: 'chart',
+  ECOWATT: 'ecowatt',
 };
 
 const ERROR_MESSAGES = {
@@ -593,6 +819,9 @@ const JOB_TYPES = {
   HOURLY_DEVICE_STATE_AGGREGATE: 'hourly-device-state-aggregate',
   DAILY_DEVICE_STATE_AGGREGATE: 'daily-device-state-aggregate',
   MONTHLY_DEVICE_STATE_AGGREGATE: 'monthly-device-state-aggregate',
+  GLADYS_GATEWAY_BACKUP: 'gladys-gateway-backup',
+  DEVICE_STATES_PURGE_SINGLE_FEATURE: 'device-state-purge-single-feature',
+  VACUUM: 'vacuum',
 };
 
 const JOB_STATUS = {
@@ -640,6 +869,7 @@ const JOB_ERROR_TYPES_LIST = createList(JOB_ERROR_TYPES);
 
 module.exports.STATE = STATE;
 module.exports.BUTTON_STATUS = BUTTON_STATUS;
+module.exports.COVER_STATE = COVER_STATE;
 module.exports.EVENTS = EVENTS;
 module.exports.LIFE_EVENTS = LIFE_EVENTS;
 module.exports.STATES = STATES;

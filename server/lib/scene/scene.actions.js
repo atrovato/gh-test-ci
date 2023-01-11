@@ -8,7 +8,7 @@ const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
 const { ACTIONS, DEVICE_FEATURE_CATEGORIES, DEVICE_FEATURE_TYPES } = require('../../utils/constants');
 const { getDeviceFeature } = require('../../utils/device');
-const { AbortScene } = require('../../utils/coreErrors');
+const { AbortScene, NotFoundError } = require('../../utils/coreErrors');
 const { compare } = require('../../utils/compare');
 const { parseJsonIfJson } = require('../../utils/json');
 const logger = require('../../utils/logger');
@@ -127,17 +127,26 @@ const actionsFunc = {
   },
   [ACTIONS.DEVICE.GET_VALUE]: async (self, action, scope, columnIndex, rowIndex) => {
     const deviceFeature = self.stateManager.get('deviceFeature', action.device_feature);
-    set(scope, `${columnIndex}.${rowIndex}`, deviceFeature);
+    set(
+      scope,
+      `${columnIndex}`,
+      {
+        [rowIndex]: deviceFeature,
+      },
+      { merge: true },
+    );
   },
   [ACTIONS.CONDITION.ONLY_CONTINUE_IF]: async (self, action, scope) => {
     let oneConditionVerified = false;
     action.conditions.forEach((condition) => {
-      const conditionVerified = compare(condition.operator, get(scope, condition.variable), condition.value);
+      // removing brackets
+      const variableWithoutBrackets = condition.variable.replace(/\[|\]/g, '');
+      const conditionVerified = compare(condition.operator, get(scope, variableWithoutBrackets), condition.value);
       if (conditionVerified) {
         oneConditionVerified = true;
       } else {
         logger.debug(
-          `Condition not verified. Condition: "${get(scope, condition.variable)} ${condition.operator} ${
+          `Condition not verified. Condition: "${get(scope, variableWithoutBrackets)} ${condition.operator} ${
             condition.value
           }"`,
         );
@@ -247,7 +256,14 @@ const actionsFunc = {
       parseJsonIfJson(bodyWithVariables),
       headersObject,
     );
-    set(scope, `${columnIndex}.${rowIndex}`, response);
+    set(
+      scope,
+      `${columnIndex}`,
+      {
+        [rowIndex]: response,
+      },
+      { merge: true },
+    );
   },
   [ACTIONS.USER.CHECK_PRESENCE]: async (self, action, scope, columnIndex, rowIndex) => {
     let deviceSeenRecently = false;
@@ -295,6 +311,7 @@ const actionsFunc = {
       const eventFormatted = {
         name: eventRaw.name,
         location: eventRaw.location,
+        description: eventRaw.description,
         start: dayjs(eventRaw.start)
           .tz(self.timezone)
           .locale(eventRaw.calendar.creator.language)
@@ -304,9 +321,40 @@ const actionsFunc = {
           .locale(eventRaw.calendar.creator.language)
           .format('LLL'),
       };
-      set(scope, `${columnIndex}.${rowIndex}`, {
-        calendarEvent: eventFormatted,
-      });
+      set(
+        scope,
+        `${columnIndex}`,
+        {
+          [rowIndex]: {
+            calendarEvent: eventFormatted,
+          },
+        },
+        { merge: true },
+      );
+    }
+  },
+  [ACTIONS.ECOWATT.CONDITION]: async (self, action) => {
+    const data = await self.gateway.getEcowattSignals();
+    const todayDate = dayjs.tz(dayjs(), self.timezone).format('YYYY-MM-DD');
+    const todayHour = dayjs.tz(dayjs(), self.timezone).hour();
+    const todayLiveData = data.signals.find((day) => {
+      const signalDate = dayjs(day.jour).format('YYYY-MM-DD');
+      return todayDate === signalDate;
+    });
+    if (!todayLiveData) {
+      throw new NotFoundError('Ecowatt: day not found');
+    }
+    const currentHourNetworkStatus = todayLiveData.values.find((hour) => hour.pas === todayHour);
+    if (!currentHourNetworkStatus) {
+      throw new NotFoundError('Ecowatt: hour not found');
+    }
+    const ECOWATT_STATUSES = {
+      1: 'ok',
+      2: 'warning',
+      3: 'critical',
+    };
+    if (ECOWATT_STATUSES[currentHourNetworkStatus.hvalue] !== action.ecowatt_network_status) {
+      throw new AbortScene('ECOWATT_DIFFERENT_STATUS');
     }
   },
 };
